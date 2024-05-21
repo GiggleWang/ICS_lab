@@ -1,0 +1,67 @@
+#name:Wang Yixiao
+#id:ics522031910732
+
+#copy_block:
+#long result=0
+#goto check
+
+#while:
+#long val = *src
+#src+=8
+#*dst = val
+#dst+=8
+#result^=val
+#len--
+
+#check:
+#if(len>0)
+#goto while
+#return result
+
+
+
+.pos 0
+irmovq stack,%rsp
+call main
+halt
+
+main:
+irmovq src,%rdi
+irmovq dest,%rsi
+irmovq $3,%rdx
+call copy_block
+ret
+
+copy_block:
+irmovq $0,%rax
+jmp check
+
+while:
+mrmovq (%rdi), %r10
+irmovq $8,%r8
+addq %r8, %rdi
+rmmovq %r10, (%rsi)
+addq %r8, %rsi
+xorq %r10, %rax
+irmovq $1,%r9
+subq %r9, %rdx
+
+check:
+andq %rdx,%rdx	
+jg while
+ret
+
+.align 8
+# Source block
+src:
+.quad 0x00a
+.quad 0x0b0
+.quad 0xc00
+# Destination block
+dest:
+.quad 0x111
+.quad 0x222
+.quad 0x333
+
+.pos 0x200
+stack:

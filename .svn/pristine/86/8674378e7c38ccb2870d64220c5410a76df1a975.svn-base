@@ -1,0 +1,50 @@
+#name:Wang Yixiao
+#id:ics522031910732
+
+#long sum_list(list_ptr ls)
+#{
+#    long val = 0;
+#    while (ls) {
+#	 val += ls->val;
+#	 ls = ls->next;
+#   }
+#    return val;
+#}
+
+.pos 0
+irmovq stack, %rsp
+call main
+halt
+
+main:
+irmovq ele1,%rdi
+call sum_list
+ret
+
+sum_list:
+irmovq $0,%rax #set val to 0
+jmp test
+
+loop:
+mrmovq (%rdi), %rsi
+addq %rsi, %rax
+mrmovq 8(%rdi), %rdi
+
+test:
+andq %rdi,%rdi #check if ls equals 0
+jne loop
+
+# Sample linked list
+.align 8
+ele1:
+.quad 0x00a
+.quad ele2
+ele2:
+.quad 0x0b0
+.quad ele3
+ele3:
+.quad 0xc00
+.quad 0
+
+.pos 0x200
+stack:

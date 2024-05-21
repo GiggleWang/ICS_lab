@@ -1,0 +1,198 @@
+#/* $begin modified_ncopy_ys */
+##################################################################
+# modified_ncopy.ys - Copy a src block of len words to dst.
+# Return the number of positive words (>0) contained in src.
+#
+# Include your name and ID here.
+#name: Wang Yixiao
+#ID: ics522031910732
+# Describe how and why you modified the baseline code.
+# 首先，我通过循环展开，10个一循环，并且使用iaddq的方式，降低CPE
+# 在进行完上面的工作后，发现还没有达到最佳状态，所以在处理不满10个的循环时，采用树从上向下过滤的方式进行时间的节省，如下面的简图所示
+#                          3
+#     _____________________|_____________________
+#     |                                          |
+#   0 1 2                                        6
+#                           _____________________|____________________
+#                           |                                         |
+#                          4 5                                       7 8
+#我也曾尝试过以6为根节点或者以5为根节点，但是发现效果没有以3为根节点更好
+
+##################################################################
+# Do not modify this portion
+# Function prologue.
+# %rdi = src, %rsi = dst, %rdx = len
+ncopy:
+##################################################################
+# You can modify this portion
+    # Loop header
+    iaddq $-10,%rdx       # Check if there are 10 or more elements
+    jl handle_remainder   # jump when less than 10
+main_loop:   #每两个进行一次操作以提高速率
+    mrmovq (%rdi), %r8   
+    mrmovq 8(%rdi),%r9   
+    rmmovq %r8, (%rsi)    
+    andq %r8, %r8       
+    jle check_second           
+    iaddq $1,%rax
+check_second:    
+    rmmovq %r9,8(%rsi)                    
+    andq %r9,%r9
+    jle check_third
+    iaddq $1, %rax       
+check_third:
+    mrmovq 16(%rdi),%r8
+    mrmovq 24(%rdi),%r9
+    rmmovq %r8,16(%rsi)
+    
+    andq %r8,%r8
+    jle check_fourth
+    iaddq $1,%rax
+check_fourth:
+    rmmovq %r9,24(%rsi)
+    andq %r9,%r9
+    jle check_fifth
+    iaddq $1,%rax
+check_fifth:
+    mrmovq 32(%rdi),%r8
+    mrmovq 40(%rdi),%r9
+    rmmovq %r8,32(%rsi)
+    andq %r8,%r8
+    jle check_sixth
+    iaddq $1,%rax
+check_sixth:
+    rmmovq %r9,40(%rsi)
+    andq %r9,%r9
+    jle check_seventh
+    iaddq $1,%rax
+check_seventh:
+    mrmovq 48(%rdi),%r8
+    mrmovq 56(%rdi),%r9
+    rmmovq %r8,48(%rsi)
+    andq %r8,%r8
+    jle check_eighth
+    iaddq $1,%rax
+check_eighth:
+    andq %r9,%r9
+    rmmovq %r9,56(%rsi)
+    jle check_ninth
+    iaddq $1,%rax
+check_ninth:
+    mrmovq 64(%rdi),%r8
+    mrmovq 72(%rdi),%r9
+    rmmovq %r8,64(%rsi)
+    andq %r8,%r8
+    jle check_tenth
+    iaddq $1,%rax
+check_tenth:
+    andq %r9,%r9
+    rmmovq %r9,72(%rsi)
+    jle prepare_next_iteration
+    iaddq $1,%rax
+prepare_next_iteration:
+    iaddq $80, %rdi         # Move src forward by 10
+    iaddq $80, %rsi         # Move dst forward by 10
+    iaddq $-10, %rdx        # Prepare for the next loop iteration
+    jge main_loop
+
+handle_remainder:					#剩余的处理（1-9）
+iaddq $7,%rdx
+jl LessThanThree
+jg MoreThanThree
+je three
+
+LessThanThree:
+iaddq $2,%rdx
+je one
+iaddq $-1,%rdx
+je two
+ret
+
+MoreThanThree:
+iaddq $-3,%rdx
+jg moreThanSix
+je six
+
+lessThanSix:
+iaddq $1,%rdx
+je five
+jmp four
+
+moreThanSix:
+iaddq $-2,%rdx
+jl seven
+je eight
+
+nine:
+	mrmovq 64(%rdi),%r11
+	rmmovq %r11,64(%rsi)	
+	andq %r11,%r11
+eight:
+	mrmovq 56(%rdi),%r11
+	jle eight2
+	iaddq $1,%rax
+eight2:
+	rmmovq %r11,56(%rsi)
+	andq %r11,%r11
+seven:
+	mrmovq 48(%rdi),%r11
+	jle seven2
+	iaddq $1,%rax
+seven2:
+	rmmovq %r11,48(%rsi)
+	andq %r11,%r11
+six:
+	mrmovq 40(%rdi),%r11
+	jle six2
+	iaddq $1,%rax
+six2:
+	rmmovq %r11,40(%rsi)
+	andq %r11,%r11
+five:
+	mrmovq 32(%rdi),%r11
+	jle five2
+	iaddq $1,%rax
+five2:
+	rmmovq %r11,32(%rsi)
+	andq %r11,%r11
+four:
+	mrmovq 24(%rdi),%r11
+	jle four2
+	iaddq $1,%rax
+four2:
+	rmmovq %r11,24(%rsi)
+	andq %r11,%r11
+three:
+	mrmovq 16(%rdi),%r11
+	jle three2
+	iaddq $1,%rax
+three2:
+	rmmovq %r11,16(%rsi)
+	andq %r11,%r11
+two:
+	mrmovq 8(%rdi),%r11
+	jle two2
+	iaddq $1,%rax
+two2:
+	rmmovq %r11,8(%rsi)
+	andq %r11,%r11
+one:
+	mrmovq (%rdi),%r11
+	jle one2
+	iaddq $1,%rax
+one2:
+	rmmovq %r11,(%rsi)
+	andq %r11,%r11
+	jle Done
+	iaddq $1,%rax
+
+
+##################################################################
+# Do not modify the following section of code
+# Function epilogue.
+Done:
+	ret
+##################################################################
+# Keep the following label at the end of your function
+End:
+#/* $end ncopy-ys */

@@ -1,0 +1,124 @@
+/*
+ * BUG#0
+ * description: 
+     miss semicolon
+ * location: 
+ *   int a = 10  (line 18)
+ * evidence: 
+ *   test.c:19: error: two or more data types in declaration specifiers
+ */
+
+BUG#1
+description:
+miss semicolon
+location:
+enum { buf_size = buf_nrec * 100 } (line 52)
+evidence:
+gen_sort.c:54:9: 错误：expected ‘;’, identifier or ‘(’ before ‘struct’
+   54 | typedef struct record {
+      |         ^~~~~~
+
+
+BUG#2
+description:
+miss semicolon
+location:
+} record_t(line 58)
+evidence:
+gen_sort.c:58:11: 错误：expected ‘;’ before ‘static’
+   58 | } record_t
+      |           ^
+      |           ;
+   59 | 
+   60 | static long cur_rec = 0;
+      | ~~~~~~     
+gen_sort.c:114:9: 错误：未知的类型名‘record’
+  114 | gen_rec(record *rec)
+      |         ^~~~~~
+
+
+
+BUG#3
+description:
+change record to record_t
+location:
+gen_rec(record_t *rec)(line 114)
+evidence:
+114 | gen_rec(record *rec)
+      |         ^~~~~~
+      |         record_t
+
+
+
+BUG#4
+description:
+miss include
+location:
+#include <stdio.h>(line 41)
+evidence:
+gen_sort.c:187:2: 错误：未知的类型名‘FILE’
+  187 |  FILE *file = fopen(fn, "r");
+      |  ^~~~
+gen_sort.c:187:2: 附注：‘FILE’ is defined in header ‘<stdio.h>’; did you forget to ‘#include <stdio.h>’?
+
+
+
+BUG#5
+description:
+miss {
+location:
+if (!file)(line 188)
+evidence:
+en_sort.c:188:2: 警告：this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  188 |  if (!file)
+      |  ^~
+
+
+
+BUG#6
+description:
+lack of some number
+location:
+enum { rec_len = key_len + pad_len };(line 49)
+evidence:
+if not added ,the resault will lack 10 char;
+
+
+
+BUG#7
+description:
+'j' is written wrongly as 'i';
+location:
+for (j = 0; j < 10; i++ )(line 125)
+evidence:
+if written as i, j will always be 1 , and the counter will be useless.
+
+
+
+BUG#8
+description:
+'<' is written as '<='
+location:
+for (cnt = 0; (cnt <= buf_nrec)(line 147)
+evidence:
+if written as this , the file will have wrong when counter is more than 16.
+
+
+
+BUG#9
+description:
+the situation of open the file is 'w' instead of 'r'
+location:
+FILE *file = fopen(fn, "r");(line 187)
+evidence:
+if 'r',it will be unable to write the file.
+
+
+
+BUG#10
+description:
+the size is written wrong as 'buf_nrec' instead of 'buf_size'
+location:
+char *buf = (char *)malloc(buf_nrec) (line 181)
+evidence:
+the file will have segmental fault if written as this because of the wrong in using unopened area.

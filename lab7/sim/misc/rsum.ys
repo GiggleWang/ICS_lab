@@ -1,0 +1,53 @@
+#name:Wang Yixiao
+#id:ics522031910732
+
+.pos 0
+irmovq stack,%rsp
+call main
+halt
+
+main:
+irmovq ele1,%rdi
+call rsum_list
+ret
+
+#long rsum_list(list_ptr ls)
+#{
+#    if (!ls)
+#	 return 0;
+#    else {
+#	 long val = ls->val;
+#	 long rest = rsum_list(ls->next);
+#  	 return val + rest;
+#    }
+#}
+
+rsum_list:
+andq %rdi,%rdi       #check if ls equals 0
+je end
+mrmovq (%rdi),%rbx
+mrmovq 8(%rdi),%rdi 
+pushq %rbx
+call rsum_list
+popq %rbx
+addq %rbx,%rax
+ret
+
+end:
+irmovq $0,%rax
+ret
+
+# Sample linked list
+.align 8
+ele1:
+.quad 0x00a
+.quad ele2
+ele2:
+.quad 0x0b0
+.quad ele3
+ele3:
+.quad 0xc00
+.quad 0
+
+.pos 0x200
+stack:

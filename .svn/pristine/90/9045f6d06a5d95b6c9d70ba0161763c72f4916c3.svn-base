@@ -1,0 +1,5 @@
+ps -e --no-headers --sort=cmd
+ls -lS /etc/*.conf | head -n 5
+vim echo.sh
+echo "hello world!"
+chmod +x echo.sh
